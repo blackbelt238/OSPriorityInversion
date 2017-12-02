@@ -4,21 +4,39 @@ import (
 	"fmt"
 )
 
+// Kind is the job type
+type Kind int
+
+const (
+	T1 Kind = iota
+	T2
+	T3
+)
+
 // Job represents a job to be processed
 type Job struct {
-	tarr  int // time this job arrived at the queue
-	tproc int // time this job requires to be fully processed
-	pri   int // priority of the job
+	tarr int  // time this job arrived at the queue
+	trem int  // the remaining time until the job is fully processed
+	pri  int  // priority of the job
+	kind Kind // the kind of the job
 }
 
-// CreateFillerJob returns a new, invalid job
-func CreateFillerJob() *Job {
-	return &Job{-1, -1, -1}
+// CreateJob makes a new job
+func CreateJob(arr int, pri int, kind Kind) *Job {
+	rem := 3 // initialize the remaining time to 3ms (for T1 and T3)
+	// if a T2 is being created, adjust the remaining time accordingly
+	if kind == T2 {
+		rem = 10
+	}
+	return &Job{arr, rem, pri, kind}
 }
 
-// IsFiller checks to see if the given job is invalid
-func (j *Job) IsFiller() bool {
-	return j.tarr == -1 && j.tproc == -1 && j.pri == -1
+// Preempts evaluates whether the job preempts a given job
+func (j *Job) Preempts(job *Job) bool {
+	if j.pri > job.pri && !(j.kind == T1 && job.kind == T3) {
+		return true
+	}
+	return false
 }
 
 // Priority returns the priority of the job
@@ -28,5 +46,5 @@ func (j *Job) Priority() int {
 
 // String returns the string version of the job
 func (j *Job) String() string {
-	return fmt.Sprintf("%d %d %d", j.tarr, j.tproc, j.pri)
+	return fmt.Sprintf("%d %d %d", j.tarr, j.trem, j.pri)
 }
