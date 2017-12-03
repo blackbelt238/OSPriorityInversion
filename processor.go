@@ -32,30 +32,22 @@ func (p *processor) run() {
 
 	// the current job's index and kind
 	var cind int
-	var ckind string
 
 	// the previous job's index and kind
 	pind := -1
 	pkind := ""
 
 	// continue processing as long as there are jobs to process
-	for time < 50 && (p.que.Len() > 0 || len(p.bl) > 0) {
-		// fmt.Println("time =", time)
+	for p.que.Len() > 0 || len(p.bl) > 0 {
 		// if a job has arrived
 		if len(p.bl) > 0 && p.bl[0].tarr == time {
-			// if p.que.Len() == 0 || p.bl[0].pri.canPreempt(p.que[p.que.Len()-1].pri) {
-			// fmt.Println("pulled from backlog to queue:", p.bl[0].kind())
 			p.que.Push(p.bl[0]) // add the job to the priority queue
 			p.bl = p.bl[1:]     // remove it from the backlog
-
-			// }
-			// fmt.Println("cannot preempt")
 		}
 
 		// if there is a job to work on
 		if p.que.Len() > 0 {
 			cind = p.que[p.que.Len()-1].index
-			ckind = p.que[p.que.Len()-1].kind()
 
 			// if preemption occurred
 			if cind != pind {
@@ -64,14 +56,13 @@ func (p *processor) run() {
 					fmt.Println(" " + pkind + ".") // end processing on the previous process
 				}
 				// start the next process
-				fmt.Print("time " + fmt.Sprintf("%v", time) + ", " + ckind + " ")
+				fmt.Print("time " + fmt.Sprintf("%v", time) + ", " + p.que[p.que.Len()-1].kind() + " ")
 				pind = cind
-				pkind = ckind
+				pkind = p.que[p.que.Len()-1].kind()
 			}
 
 			// make progress on the current job
 			fmt.Print(p.que[p.que.Len()-1].printVal())
-			// fmt.Println(p.que[p.que.Len()-1].string())
 			p.que[p.que.Len()-1].trem--
 
 			// if work has finished on the job, remove it from the processor
@@ -80,7 +71,6 @@ func (p *processor) run() {
 				p.que.Pop()
 			}
 		}
-
 		time++ // progress the simulation
 	}
 	fmt.Println(" " + pkind + ".")
